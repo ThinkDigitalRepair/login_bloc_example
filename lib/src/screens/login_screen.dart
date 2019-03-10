@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:login_bloc/src/blocs/bloc.dart';
+import 'package:login_bloc/src/blocs/login_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginScreen extends StatelessWidget {
+  final _emailController = TextEditingController();
+  final _passController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -16,7 +20,14 @@ class LoginScreen extends StatelessWidget {
           Container(
             margin: EdgeInsets.only(top: 25),
           ),
-          submitButton(),
+          FlatButton(
+            child: Text("Submit"),
+            onPressed: () {
+              loginBloc.dispatch(
+                  AuthEvent(_emailController.text, _passController.text));
+            },
+          ),
+          resultText()
         ],
       ),
     );
@@ -24,15 +35,16 @@ class LoginScreen extends StatelessWidget {
 
   Widget emailField() {
     return StreamBuilder<String>(
-      stream: bloc.email,
+      stream: loginBloc.email,
       builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
         return TextField(
+          controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
               hintText: 'you@example.com',
               labelText: 'Email Address',
               errorText: snapshot.error),
-          onChanged: bloc.changeEmail,
+          onChanged: loginBloc.changeEmail,
         );
       },
     );
@@ -40,16 +52,17 @@ class LoginScreen extends StatelessWidget {
 
   Widget passwordField() {
     return TextField(
+      controller: _passController,
       decoration: InputDecoration(
           hintText: 'Enter Password', labelText: 'Enter Password'),
     );
   }
 
-  Widget submitButton() {
-    return RaisedButton(
-      child: Text('Login'),
-      color: Colors.blue,
-      onPressed: () {},
-    );
+  Widget resultText() {
+    return BlocBuilder<AuthEvent, bool>(
+        bloc: loginBloc,
+        builder: (context, snapshot) {
+          return Text(snapshot ? "Login Success!" : "Login Failed");
+        });
   }
 }
